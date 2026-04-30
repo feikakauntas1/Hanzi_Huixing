@@ -2,6 +2,8 @@ import pygame
 import random
 from asteroid import Asteroid
 from constants import *
+from hanzi_db import HANZI_DB
+from hanzi import Hanzi
 
 
 class AsteroidField(pygame.sprite.Sprite):
@@ -32,20 +34,35 @@ class AsteroidField(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self, self.containers)
         self.spawn_timer = 0.0
 
-    def spawn(self, radius, position, velocity):
-        asteroid = Asteroid(position.x, position.y, radius)
+    def spawn(self, radius, position, velocity, hanzi_soul):
+        asteroid = Asteroid(position.x, position.y, radius, hanzi_soul)
         asteroid.velocity = velocity
 
     def update(self, dt):
+        # 0. The clock must tick!
         self.spawn_timer += dt
+
+        # 1. Gatekeeper: don't count if at capacity
+        if len(self.asteroids_group) >= MAX_ASTEROIDS:
+            return
+        
+        #2. Check if time to spawn:
         if self.spawn_timer > ASTEROID_SPAWN_RATE_SECONDS:
             self.spawn_timer = 0
 
-            # spawn a new asteroid at a random edge
+            # 3. Preparation: Pick the Edge and Velocity
             edge = random.choice(self.edges)
             speed = random.randint(40, 100)
             velocity = edge[0] * speed
             velocity = velocity.rotate(random.randint(-30, 30))
             position = edge[1](random.uniform(0, 1))
-            kind = random.randint(1, ASTEROID_KINDS)
-            self.spawn(ASTEROID_MIN_RADIUS * kind, position, velocity)
+
+            # 4. Selection: Pick the Hanzi Soul
+            char_key = random.choice(list(HANZI_DB.keys()))
+            data = HANZI_DB[char_key]
+            new_soul = Hanzi(char=char_key, **data)
+
+            # 5. Action: Spawn the physical body with its soul
+            # (Note: we use a fixed radius now, no more 'kind')
+            self.spawn(ASTEROID_MIN_RADIUS * 2, position, velocity, new_soul)
+

@@ -1,4 +1,4 @@
-from constants import SHOT_RADIUS
+from constants import SHOT_RADIUS, SCREEN_HEIGHT, SCREEN_WIDTH
 from circleshape import CircleShape
 import pygame
 
@@ -7,7 +7,10 @@ class Shot(CircleShape):
         super().__init__(x,y, SHOT_RADIUS)
         
     def draw(self, screen):
-        pygame.draw.circle(screen, "white", self.position, SHOT_RADIUS)
+        pygame.draw.circle(screen, "purple", self.position, SHOT_RADIUS)
 
     def update(self, dt):
         self.position += self.velocity * dt
+        if (self.position.x < 0 or self.position.x > SCREEN_WIDTH or 
+            self.position.y < 0 or self.position.y > SCREEN_HEIGHT):
+            self.kill()
