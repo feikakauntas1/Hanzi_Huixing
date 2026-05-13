@@ -78,6 +78,8 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_u:
                     ui_opaque = not ui_opaque
+                if event.key == pygame.K_SPACE:
+                    player.shoot()
         screen.fill("black")
         updatable.update(dt)
         # main.py loop

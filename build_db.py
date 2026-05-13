@@ -1,0 +1,425 @@
+import pprint
+from pinyin_map import PINYIN_MAP
+# Import your existing database
+from hanzi_db import HANZI_DB 
+
+def add_hanzi_to_db(raw_text, db):
+    lines = raw_text.strip().split('\n')
+    for line in lines:
+        if "," not in line: continue
+        
+        char, raw_pinyin = [item.strip() for item in line.split(',')]
+        tone = int(raw_pinyin[-1])
+        base = raw_pinyin[:-1].lower().replace('ü', 'v')
+        
+        print(f"Looking up: {base}")
+        # Convert everything to 'ü' to match the map's keys
+        lookup_key = base.replace('v', 'ü')
+        pinyin_info = PINYIN_MAP.get(lookup_key)
+        if not pinyin_info:
+            print(f"FAILED to find {base} in map!")
+        if pinyin_info:
+            db[char] = {
+                "initial": pinyin_info["onset"] if pinyin_info["onset"] else "-",
+                "final": pinyin_info["rhyme"],
+                "pinyin": base.replace("v", "ü"),
+                "tone": tone,
+                "splits": []
+            }
+    return db
+
+# --- STEP 1: Paste your new characters here ---
+new_data_from_ai = """
+一, yi1
+乙, yi3
+二, er4
+十, shi2
+丁, ding1
+厂, chang3
+七, qi1
+八, ba1
+人, ren2
+入, ru4
+儿, er2
+匕, bi3
+几, ji3
+九, jiu3
+刁, diao1
+刀, dao1
+力, li4
+乃, nai3
+又, you4
+三, san1
+于, yu2
+亏, kui1
+工, gong1
+土, tu3
+士, shi4
+才, cai2
+下, xia4
+寸, cun4
+丈, zhang4
+万, wan4
+上, shang4
+小, xiao3
+口, kou3
+山, shan1
+巾, jin1
+千, qian1
+乞, qi3
+川, chuan1
+亿, yi4
+个, ge4
+夕, xi1
+久, jiu3
+勺, shao2
+凡, fan2
+丸, wan2
+及, ji2
+广, guang3
+亡, wang2
+门, men2
+丫, ya1
+义, yi4
+之, zhi1
+尸, shi1
+己, ji3
+已, yi3
+巳, si4
+弓, gong1
+子, zi3
+卫, wei4
+也, ye3
+女, nv3
+刃, ren4
+飞, fei1
+习, xi2
+叉, cha1
+马, ma3
+乡, xiang1
+丰, feng1
+王, wang2
+开, kai1
+井, jing3
+天, tian1
+夫, fu1
+元, yuan2
+无, wu2
+云, yun2
+专, zhuan1
+丐, gai4
+艺, yi4
+木, mu4
+五, wu3
+支, zhi1
+厅, ting1
+不, bu4
+犬, quan3
+太, tai4
+区, qu1
+历, li4
+歹, dai3
+友, you3
+尤, you2
+匹, pi3
+车, che1
+巨, ju4
+牙, ya2
+戈, ge1
+比, bi3
+互, hu4
+瓦, wa3
+止, zhi3
+曰, yue1
+日, ri4
+贝, bei4
+冈, gang1
+内, nei4
+水, shui3
+见, jian4
+午, wu3
+牛, niu2
+手, shou3
+气, qi4
+毛, mao2
+壬, ren2
+升, sheng1
+夭, yao1
+片, pian4
+化, hua4
+仇, chou2
+币, bi4
+仍, reng2
+仅, jin3
+斤, jin1
+爪, zhua3
+反, fan3
+介, jie4
+父, fu4
+从, cong2
+仑, lun2
+今, jin1
+凶, xiong1
+乏, fa2
+公, gong1
+仓, cang1
+月, yue4
+氏, shi4
+勿, wu4
+欠, qian4
+风, feng1
+丹, dan1
+匀, yun2
+勾, gou1
+凤, feng4
+六, liu4
+文, wen2
+亢, kang4
+方, fang1
+火, huo3
+忆, yi4
+计, ji4
+订, ding4
+户, hu4
+认, ren4
+冗, rong3
+讥, ji1
+心, xin1
+尺, chi3
+引, yin3
+丑, chou3
+巴, ba1
+孔, kong3
+队, dui4
+办, ban4
+以, yi3
+允, yun3
+予, yu3
+邓, deng4
+劝, quan4
+双, shuang1
+书, shu1
+幻, huan4
+玉, yu4
+刊, kan1
+未, wei4
+末, mo4
+示, shi4
+击, ji1
+巧, qiao3
+扑, pu1
+功, gong1
+扔, reng1
+去, qu4
+甘, gan1
+世, shi4
+艾, ai4
+古, gu3
+节, jie2
+本, ben3
+术, shu4
+可, ke3
+丙, bing3
+左, zuo3
+厉, li4
+石, shi2
+右, you4
+布, bu4
+夯, hang1
+戊, wu4
+龙, long2
+平, ping2
+灭, mie4
+东, dong1
+北, bei3
+凸, tu1
+卢, lu2
+业, ye4
+旧, jiu4
+帅, shuai4
+归, gui1
+旦, dan4
+目, mu4
+且, qie3
+叶, ye4
+甲, jia3
+申, shen1
+叮, ding1
+电, dian4
+号, hao4
+田, tian2
+由, you2
+叭, ba1
+史, shi3
+央, yang1
+兄, xiong1
+叽, ji1
+叼, diao1
+叫, jiao4
+叩, kou4
+叨, dao1
+另, ling4
+叹, tan4
+冉, ran3
+皿, min3
+凹, ao1
+囚, qiu2
+四, si4
+生, sheng1
+矢, shi3
+失, shi1
+乍, zha4
+禾, he2
+丘, qiu1
+付, fu4
+仗, zhang4
+代, dai4
+仙, xian1
+仪, yi2
+白, bai2
+他, ta1
+斥, chi4
+瓜, gua1
+乎, hu1
+丛, cong2
+令, ling4
+用, yong4
+甩, shuai3
+印, yin4
+尔, er3
+句, ju4
+匆, cong1
+册, ce4
+卯, mao3
+犯, fan4
+外, wai4
+冬, dong1
+鸟, niao3
+务, wu4
+包, bao1
+饥, ji1
+主, zhu3
+市, shi4
+立, li4
+冯, feng2
+玄, xuan2
+闪, shan3
+兰, lan2
+半, ban4
+汁, zhi1
+汇, hui4
+头, tou2
+汉, han4
+穴, xue2
+它, ta1
+讨, tao3
+写, xie3
+让, rang4
+礼, li3
+训, xun4
+议, yi4
+必, bi4
+讯, xun4
+记, ji4
+永, yong3
+司, si1
+民, min2
+弗, fu2
+弘, hong2
+出, chu1
+辽, liao2
+奶, nai3
+奴, nu2
+加, jia1
+皮, pi2
+边, bian1
+圣, sheng4
+对, dui4
+台, tai2
+矛, mao2
+纠, jiu1
+母, mu3
+幼, you4
+丝, si1
+邦, bang1
+式, shi4
+迂, yu1
+刑, xing2
+戎, rong2
+动, dong4
+寺, si4
+吉, ji2
+扣, kou4
+考, kao3
+托, tuo1
+老, lao3
+巩, gong3
+执, zhi2
+扩, kuo4
+扬, yang2
+耳, er3
+芋, yu4
+共, gong4
+芒, mang2
+亚, ya4
+芝, zhi1
+朽, xiu3
+机, ji1
+权, quan2
+过, guo4
+臣, chen2
+吏, li4
+再, zai4
+协, xie2
+西, xi1
+厌, yan4
+戌, xu1
+在, zai4
+百, bai3
+有, you3
+存, cun2
+而, er2
+页, ye4
+匠, jiang4
+夸, kua1
+夺, duo2
+灰, hui1
+达, da2
+列, lie4
+死, si3
+成, cheng2
+夷, yi2
+轨, gui3
+邪, xie2
+尧, yao2
+迈, mai4
+毕, bi4
+至, zhi4
+此, ci3
+贞, zhen1
+师, shi1
+尘, chen2
+尖, jian1
+劣, lie4
+光, guang1
+早, zao3
+虫, chong2
+曲, qu1
+团, tuan2
+吕, lv3
+同, tong2
+吊, diao4
+吃, chi1
+因, yin1
+"""
+
+# --- STEP 2: Update the dictionary ---
+updated_database = add_hanzi_to_db(new_data_from_ai, HANZI_DB)
+
+# --- STEP 3: Save it back to hanzi_db.py ---
+with open("hanzi_db.py", "w", encoding="utf-8") as f:
+    f.write("HANZI_DB = ")
+    # use sort_dicts=False to keep your characters in order
+    f.write(pprint.pformat(updated_database, indent=4, sort_dicts=False))
+
+print("Database updated successfully!")
